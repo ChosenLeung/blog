@@ -6,7 +6,7 @@ var settings = require('./settings');
 
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
-
+//test
 var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
