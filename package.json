@@ -17,6 +17,7 @@
     "connect-mongo": "*",
     "cookie-parser":"*",
     "express-session":"*",
-    "connect":"*"
+    "connect":"*",
+    "connect-flash":"*"
   }
 }
