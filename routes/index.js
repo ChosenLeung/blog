@@ -1,16 +1,23 @@
 var crypto = require('crypto');
 var User = require('../models/user.js');
+var Post = require('../models/post.js');
 
 var express = require('express');
 var router = express.Router();
 
 /* GET home page. */
 router.get('/', function (req, res) {
-    res.render('index', {
-        title: '主页',
-        user: req.session.user,
-        success: req.flash('success').toString(),
-        error: req.flash('error').toString()
+    Post.get(null, function (err, posts) {
+        if (err) {
+            posts = [];
+        }
+        res.render('index', {
+            title: '主页',
+            user: req.session.user,
+            posts: posts,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        });
     });
 });
 
@@ -25,7 +32,6 @@ router.get('/reg', function (req, res) {
 
 router.post('/reg', function (req, res) {
 
-    console.log('reg');
     var name = req.body.name,
         passowrd = req.body.password,
         password_re = req.body['password-repeat'];
@@ -95,11 +101,29 @@ router.post('/login', function (req, res) {
     });
 });
 
+router.get('/post', checkLogin);
 router.get('/post', function (req, res) {
-    res.render('post', { title: '发表' });
+//    res.render('post', { title: '发表' });
+    res.render('post', {
+        title: '发表',
+        user: req.session.user,
+        success: req.flash('success').toString(),
+        error: req.flash('error').toString()
+    });
 });
 
+router.post('/post', checkLogin);
 router.post('/post', function (req, res) {
+    var currentUser = req.session.user,
+        post = new Post(currentUser.name, req.body.title, req.body.post);
+    post.save(function(err){
+        if(err){
+            req.flash('error', err);
+            return res.redirect('/');
+        }
+        req.flash('success', '发布成功!');
+        res.redirect('/');
+    });
 });
 
 router.get('/logout', function (req, res) {
@@ -107,4 +131,20 @@ router.get('/logout', function (req, res) {
     req.flash('success','登出成功');
     res.redirect('/');
 });
+
+function checkLogin(req, res, next) {
+    if (!req.session.user) {
+        req.flash('error', '未登录!');
+        res.redirect('/login');
+    }
+    next();
+}
+
+function checkNotLogin(req, res, next) {
+    if (req.session.user) {
+        req.flash('error', '已登录!');
+        res.redirect('back');//返回之前的页面
+    }
+    next();
+}
 module.exports = router;
